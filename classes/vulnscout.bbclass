@@ -86,6 +86,7 @@ python do_vulnscout() {
     import os
     import subprocess
     import shutil
+    import re
 
     compose_file = d.getVar("VULNSCOUT_DEPLOY_DIR") + "/docker-compose.yml"
     compose_cmd = ""
@@ -103,6 +104,19 @@ python do_vulnscout() {
             compose_cmd = "docker compose"
         except (subprocess.CalledProcessError, FileNotFoundError):
             bb.fatal("Neither 'docker-compose' nor 'docker compose' are available. Please install one of them.")
+
+    # Check if there is already a vulnscout container. If so, delete it.
+    check_cmd = subprocess.run(['docker', 'ps', '-a'], capture_output=True, text=True)
+    chek_result = check_cmd.stdout
+    if "vulnscout" in chek_result:
+        bb.plain('Find a vulnscout cointainer, deleting it ...')
+        # Check if the container as the name "vulnscout" or "xf46...vulnscout" then delete it
+        container = re.search(r'\b[\w]+_vulnscout',chek_result)
+        if container:
+            vulnscout_container = container.group(0)
+            subprocess.run(['docker', 'rm', vulnscout_container])
+        else:
+            subprocess.run(['docker', 'rm', 'vulnscout'])
 
     # Use oe_terminal to run in a new interactive shell
     cmd = f"sh -c '{compose_cmd} -f \"{compose_file}\" up; echo \"\\nContainer exited. Press any key to close...\"; read x'"
