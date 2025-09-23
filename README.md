@@ -54,16 +54,28 @@ To enable and configure Vulnscout, you simply add `inherit vulnscout` in your im
 
 This project contains an example as described in `recipes-core/images/core-image-minimal.bbappend`.
 
+
 ## Configuration for cqfd and kas
 
-It's possible to use Vulnscout when using cqfd and kas with your yocto image. 
-You need to add `docker-compose-v2` to your *.cfqd/docker/Dockerfile* and export this argument: 
-`export CQFD_EXTRA_RUN_ARGS="-v /run/docker.sock:/run/docker.sock"`
+It's possible to use Vulnscout when using cqfd and/or kas with your yocto image.
+ 
+You need to add `docker-compose-v2` to your *.cfqd/docker/Dockerfile* and export this argument:
+ 
+``` bash 
+export CQFD_EXTRA_RUN_ARGS="-v /run/docker.sock:/run/docker.sock"
+```
 
 You can also add the variable : `docker_run_args="-v /run/docker.sock:/run/docker.sock"` in your *.cqfdrc* file to make the changment permanent.
 
-Now you can build your image and launch vulnscout with this command:
-`cqfd kas shell -c "bitbake -c <your_Yocto_image> -c vulnscout"`
+Now you can build your image and launch vulnscout with one of these commands:
+
+**If you use cqfd and kas**
+``` bash
+cqfd kas shell -c "bitbake -c <your_Yocto_image> -c vulnscout"
+```
+**If you use cqfd and the script build.sh make by SFL**
+```bash
+cqfd run ./build.sh -- bitbake <your_Yocto_image> -c vulnscout
 
 ## Building
 
