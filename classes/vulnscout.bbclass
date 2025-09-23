@@ -105,18 +105,20 @@ python do_vulnscout() {
         except (subprocess.CalledProcessError, FileNotFoundError):
             bb.fatal("Neither 'docker-compose' nor 'docker compose' are available. Please install one of them.")
 
-    # Check if there is already a vulnscout container. If so, delete it.
-    check_cmd = subprocess.run(['docker', 'ps', '-a'], capture_output=True, text=True)
-    chek_result = check_cmd.stdout
-    if "vulnscout" in chek_result:
-        bb.plain('Find a vulnscout cointainer, deleting it ...')
-        # Check if the container as the name "vulnscout" or "xf46...vulnscout" then delete it
-        container = re.search(r'\b[\w]+_vulnscout',chek_result)
-        if container:
-            vulnscout_container = container.group(0)
-            subprocess.run(['docker', 'rm', vulnscout_container])
-        else:
-            subprocess.run(['docker', 'rm', 'vulnscout'])
+    def get_vulnscout_containers():
+        # Check if there is already some vulnscout containers and retrieve their IDs
+        check_cmd = subprocess.run(['docker', 'ps', '-a', '--filter', 'name=vulnscout','--format', '{{.ID}}'], capture_output=True, text=True)
+        containers = check_cmd.stdout.strip().splitlines()
+        return containers
+
+    containers = get_vulnscout_containers()
+    # If there is already vulnscout containers, delete them
+    while containers:
+        print(f"Found {len(containers)} vulnscout container(s), deleting...")
+        for cid in containers:
+            subprocess.run(['docker', 'rm', '-f', cid])
+        # re-check after deletion
+        containers = get_vulnscout_containers()
 
     # Use oe_terminal to run in a new interactive shell
     cmd = f"sh -c '{compose_cmd} -f \"{compose_file}\" up; echo \"\\nContainer exited. Press any key to close...\"; read x'"
