@@ -112,11 +112,24 @@ python do_vulnscout() {
         return containers
 
     containers = get_vulnscout_containers()
-    # If there is already vulnscout containers, delete them
+    retry_count = 0
+    # If there is already vulnscout containers, delete them. If cannot delete a container, try 5 times then stop.
     while containers:
-        print(f"Found {len(containers)} vulnscout container(s), deleting...")
+        bb.plain(f"Found {len(containers)} vulnscout container(s), deleting...")
+        success = True              
         for cid in containers:
-            subprocess.run(['docker', 'rm', '-f', cid])
+            result = subprocess.run(['docker', 'rm', '-f', cid])
+            if result.returncode != 0:
+                    bb.war(f"Failed to delete container {cid}: {result.stderr.strip()}")
+                    success = False
+        
+        if success:
+            retry_count = 0
+        else:
+            retry_count += 1
+            if retry_count >= 5:
+                bb.fatal("Cannot delete old vulnscout containers. Exiting...")
+                break
         # re-check after deletion
         containers = get_vulnscout_containers()
 
