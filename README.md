@@ -54,28 +54,36 @@ To enable and configure Vulnscout, you simply add `inherit vulnscout` in your im
 
 This project contains an example as described in `recipes-core/images/core-image-minimal.bbappend`.
 
+## Using the web interface with a building Docker container
 
-## Configuration for cqfd and kas
+The Yocto task `vulnscout` creates and starts the Docker container with a Web interface available.
 
-It's possible to use Vulnscout when using cqfd and/or kas with your yocto image.
- 
-You need to add `docker-compose-v2` to your *.cfqd/docker/Dockerfile* and export this argument:
- 
-``` bash 
+Using a Docker container to build the project requires additional configuration to access the web interface.
+
+Indeed, the web interface won't be mapped to the host if the building Docker container is not properly configured.
+
+CQFD requires adding `docker-compose-v2` to your *.cfqd/docker/Dockerfile* and exporting the following variable:
+
+``` bash
 export CQFD_EXTRA_RUN_ARGS="-v /run/docker.sock:/run/docker.sock"
 ```
 
-You can also add the variable : `docker_run_args="-v /run/docker.sock:/run/docker.sock"` in your *.cqfdrc* file to make the changment permanent.
+For a permanent change, you can instead modify the *.cqfdrc* file with
+`docker_run_args="-v /run/docker.sock:/run/docker.sock"`.
 
-Now you can build your image and launch vulnscout with one of these commands:
+Now, you can build your image and use the `vulnscout` task with one of these commands:
 
-**If you use cqfd and kas**
+**If you use CQFD and KAS**
 ``` bash
 cqfd kas shell -c "bitbake -c <your_Yocto_image> -c vulnscout"
 ```
-**If you use cqfd and the script build.sh make by SFL**
+**If you use CQFD and the script build.sh made by Savoir-Faire Linux**
 ```bash
 cqfd run ./build.sh -- bitbake <your_Yocto_image> -c vulnscout
+```
+
+If the container can't be configured (e.g., with kas-container).
+Vulnscout web interface can still be run directly on the host with the ' docker-compose` command.
 
 ## Building
 
