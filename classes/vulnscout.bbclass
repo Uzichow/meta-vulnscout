@@ -224,8 +224,8 @@ python do_vulnscout() {
     except subprocess.CalledProcessError as e:
         bb.fatal(f"Failed to stop docker-compose: {e}")
 }
-do_vulnscout[nostamp] = "1"
-do_vulnscout_ci[nostamp] = "1"
+#do_vulnscout[nostamp] = "1"
+#do_vulnscout_ci[nostamp] = "1"
 
 addtask vulnscout after do_image_complete
 addtask vulnscout_ci after do_setup_vulnscout
